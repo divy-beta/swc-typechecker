@@ -66,11 +66,15 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
         if self.text.starts_with('@') {
             self.bump(1);
 
-            let ty = self.parse_str(false)?;
+            let ty = self.parse_str(false, false)?;
 
-            let key = self.parse_str(false)?;
+            self.skip_ws();
+
+            let key = self.parse_str(false, false)?;
+
             self.skip_ws_and_line_break();
-            let value = self.parse_str(true)?;
+
+            let value = self.parse_str(true, true)?;
             return Ok(JsDocItem::Simple { ty, key, value });
         }
 
@@ -81,7 +85,7 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
         })?
     }
 
-    fn parse_str(&mut self, allow_empty: bool) -> PResult<'a, Str> {
+    fn parse_str(&mut self, allow_empty: bool, eat_extra: bool) -> PResult<'a, Str> {
         println!("parse_str: {}", self.text);
 
         self.skip_ws_and_line_break();
@@ -118,8 +122,14 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
                 }
             }
 
-            if self.group_fin.is_none() && c.is_ascii_whitespace() {
+            if !eat_extra && self.group_fin.is_none() && c.is_ascii_whitespace() {
                 return Ok(self.bump(i));
+            }
+
+            if eat_extra && (c == '\n' || c == '\t') {
+                let ret = self.bump(i);
+                self.skip_ws_and_line_break();
+                return Ok(ret);
             }
         }
 
@@ -134,7 +144,7 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
         let old = self.group_fin;
         self.group_fin = Some(fin);
 
-        let ret = self.parse_str(true)?;
+        let ret = self.parse_str(true, true)?;
 
         self.group_fin = old;
 
@@ -151,8 +161,18 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
         Ok(items)
     }
 
+    fn skip_ws(&mut self) {
+        for (i, c) in self.text.char_indices() {
+            if c == 'v' || c == '\t' {
+                continue;
+            }
+
+            self.bump(i);
+            return;
+        }
+    }
+
     fn skip_ws_and_line_break(&mut self) {
-        let mut remove_star = false;
         for (i, c) in self.text.char_indices() {
             if c.is_ascii_whitespace() {
                 continue;
