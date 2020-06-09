@@ -5,7 +5,7 @@ use crate::{
     token::Token,
     PResult,
 };
-use swc_common::{comments::Comment, errors::Handler, BytePos, Span};
+use swc_common::{comments::Comment, errors::Handler, BytePos, Span, SyntaxContext};
 use swc_ecma_ast::Str;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -48,16 +48,34 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
     }
 
     pub fn parse_description(&mut self) -> PResult<'a, Str> {
-        let mut last = 0;
-        for (i, c) in self.text.char_indices() {
-            if c == '@' {
-                break;
+        let mut buf = String::new();
+        let lo = self.span.lo();
+        let mut hi = self.span.lo();
+
+        'outer: loop {
+            let mut last = 0;
+            for (i, c) in self.text.char_indices() {
+                if c == '@' {
+                    let s = self.bump(i);
+                    hi = s.span.hi();
+                    buf.push_str(&s.value);
+                    return Ok(Str {
+                        span: Span::new(lo, hi, SyntaxContext::empty()),
+                        value: buf.into(),
+                        has_escape: false,
+                    });
+                }
+
+                if c == '\n' || c == '\r' {
+                    // Remove newlines and star.
+                    self.skip_ws_and_line_break();
+                    let s = self.bump(i);
+                    hi = s.span.hi();
+                    buf.push_str(&s.value);
+                    continue 'outer;
+                }
             }
-
-            last = i;
         }
-
-        Ok(self.bump(last))
     }
 
     pub fn parse_item(&mut self) -> PResult<'a, JsDocItem> {
@@ -153,7 +171,7 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
 
     pub fn parse_items(&mut self) -> PResult<'a, Vec<JsDocItem>> {
         let mut items = vec![];
-        loop {
+        while self.text.starts_with('@') {
             self.skip_ws_and_line_break();
             items.push(self.parse_item()?);
         }
@@ -173,8 +191,26 @@ impl<'a, 'b> JsDocParser<'a, 'b> {
     }
 
     fn skip_ws_and_line_break(&mut self) {
+        let mut last_was_star = false;
+        let mut can_eat_star = false;
+
         for (i, c) in self.text.char_indices() {
+            if c == '\n' || c == '\r' {
+                can_eat_star = true;
+                continue;
+            }
+
             if c.is_ascii_whitespace() {
+                continue;
+            }
+
+            if last_was_star && c == '/' {
+                continue;
+            }
+
+            if can_eat_star && c == '*' {
+                can_eat_star = false;
+                last_was_star = true;
                 continue;
             }
 
