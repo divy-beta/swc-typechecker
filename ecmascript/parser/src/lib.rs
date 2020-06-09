@@ -107,6 +107,7 @@ use swc_common::{errors::Handler, Span, SpanData};
 #[macro_use]
 mod macros;
 mod error;
+pub mod jsdoc;
 pub mod lexer;
 mod parser;
 pub mod token;
