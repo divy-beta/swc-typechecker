@@ -12,6 +12,7 @@ edition = "2018"
 default = []
 # Requires nightly.
 fold = ["swc_common/fold"]
+jsdoc = []
 
 [dependencies]
 serde = { version = "1.0.88", features = ["derive"] }
