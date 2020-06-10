@@ -8,6 +8,9 @@ use crate::{
 use swc_common::{comments::Comment, errors::Handler, BytePos, Span, SyntaxContext};
 use swc_ecma_ast::Str;
 
+pub mod lexer;
+pub mod parser;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct JsDoc {
     pub description: Str,

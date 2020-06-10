@@ -15,6 +15,7 @@ default = []
 fold = ["swc_common/fold", "swc_ecma_ast/fold"]
 # Verify that expression is valid. Requires nightly.
 verify = ["fold"]
+jsdoc = ["swc_ecma_ast/jsdoc"]
 
 [dependencies]
 swc_atoms = { version = "0.2", path ="../../atoms" }

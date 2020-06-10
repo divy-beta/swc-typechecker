@@ -1,5 +1,12 @@
 //! es2019 parser
 //!
+//! # Cargo flags
+//!
+//! ## `jsdoc`
+//!
+//! Enable [jsdoc] module.
+//!
+//!
 //! # Features
 //!
 //! ## Heavily tested
@@ -107,6 +114,7 @@ use swc_common::{errors::Handler, Span, SpanData};
 #[macro_use]
 mod macros;
 mod error;
+#[cfg(feature = "jsdoc")]
 pub mod jsdoc;
 pub mod lexer;
 mod parser;

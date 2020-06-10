@@ -73,6 +73,8 @@ mod decl;
 mod expr;
 mod function;
 mod ident;
+#[cfg(feature = "jsdoc")]
+mod jsdoc;
 mod jsx;
 mod lit;
 mod module;
