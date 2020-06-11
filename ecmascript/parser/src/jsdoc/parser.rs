@@ -1,11 +1,11 @@
-use crate::{parser::input::Buffer, token::Token, PResult, Tokens};
+use crate::{parser::input::Buffer, token::Token, PResult, Session, Tokens};
 use swc_common::{errors::Handler, BytePos};
 use swc_ecma_ast::*;
 use swc_ecma_parser_macros::parser;
 
 #[derive(Clone)]
 pub struct Parser<'a, I: Tokens> {
-    handler: &'a Handler,
+    session: Session<'a>,
     input: Buffer<I>,
 }
 
@@ -15,7 +15,7 @@ where
 {
     pub fn new(handler: &'a Handler, input: I) -> Self {
         Self {
-            handler,
+            session: Session { handler },
             input: Buffer::new(input),
         }
     }
@@ -28,7 +28,16 @@ where
 {
     pub fn parse(&mut self) -> PResult<'a, JsDoc> {}
 
-    fn parse_tags(&mut self) -> PResult<'a, Vec<JsDocTagItem>> {}
+    fn parse_tags(&mut self) -> PResult<'a, Vec<JsDocTagItem>> {
+        let mut tags = vec![];
+
+        while is!('@') {
+            let tag = self.parse_tag()?;
+            tags.push(tag);
+        }
+
+        Ok(tags)
+    }
 
     fn parse_tag(&mut self) -> PResult<'a, JsDocTagItem> {
         let start = cur_pos!();
@@ -44,14 +53,20 @@ where
             _ => unreachable!(),
         };
 
-        let tag = match &*tag_name.value {
+        let tag = match &*tag_name.sym {
             "abstract" | "virtual" => self.parse_unknown_tag(start)?,
 
             "access" => self.parse_unknown_tag(start)?,
 
             "async" => self.parse_unknown_tag(start)?,
 
-            "augments" | "extends" => JsDocTag::Augments(JsDocAugmentsTag {}),
+            "augments" | "extends" => {
+                let class = self.parse_expr_with_type_args()?;
+                JsDocTag::Augments(JsDocAugmentsTag {
+                    class,
+                    span: span!(start),
+                })
+            }
 
             "author" => JsDocTag::Author(JsDocAuthorTag {}),
 
@@ -203,4 +218,6 @@ where
         //
         unimplemented!("parse_type")
     }
+
+    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {}
 }
