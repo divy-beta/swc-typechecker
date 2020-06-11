@@ -62,8 +62,7 @@ pub enum JsDocTag {
 #[ast_node]
 pub struct JsDocUnknownTag {
     pub span: Span,
-    pub tag: Str,
-    pub args: Str,
+    pub extras: Str,
 }
 
 /// `@extends`, `@augments`

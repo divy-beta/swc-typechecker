@@ -1,5 +1,5 @@
 use crate::{lexer::TokenContexts, token::TokenAndSpan, Context, JscTarget, Syntax, Tokens};
-use swc_common::{errors::Handler, input::Input, BytePos, Span, SpanData, SyntaxContext};
+use swc_common::{errors::Handler, input::Input, BytePos, SpanData, SyntaxContext};
 
 #[derive(Clone, Default)]
 struct State {}
@@ -64,6 +64,8 @@ where
                     },
                 });
             }
+
+            _ => {}
         }
 
         None

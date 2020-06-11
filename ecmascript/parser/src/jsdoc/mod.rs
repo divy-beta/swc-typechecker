@@ -1,11 +1,5 @@
 //! JsDoc parser
 
-use crate::{
-    error::{Eof, Error, ErrorToDiag, SyntaxError},
-    token::Token,
-    PResult,
-};
-use swc_common::{comments::Comment, errors::Handler, BytePos, Span, SyntaxContext};
 use swc_ecma_ast::Str;
 
 pub mod lexer;
