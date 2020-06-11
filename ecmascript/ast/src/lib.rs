@@ -20,7 +20,11 @@ pub use self::{
     },
     function::{Function, Param, ParamOrTsParamProp},
     ident::{Ident, IdentExt, PrivateName},
-    jsdoc::{JsDoc, JsDocTag, JsDocTagKind, JsDocType, JsDocTypeKind},
+    jsdoc::{
+        JsDoc, JsDocAllType, JsDocFunctionType, JsDocNamePathType, JsDocNonNullableType,
+        JsDocNullableType, JsDocOptionalType, JsDocTag, JsDocType, JsDocUnknownType,
+        JsDocVariadicType,
+    },
     jsx::{
         JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXClosingElement, JSXClosingFragment,
         JSXElement, JSXElementChild, JSXElementName, JSXEmptyExpr, JSXExpr, JSXExprContainer,
