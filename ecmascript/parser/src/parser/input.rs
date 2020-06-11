@@ -172,7 +172,7 @@ impl<I: Tokens> Tokens for Capturing<I> {
 
 /// This struct is responsible for managing current token and peeked token.
 #[derive(Clone)]
-pub(super) struct Buffer<I: Tokens> {
+pub(crate) struct Buffer<I: Tokens> {
     iter: I,
     /// Span of the previous token.
     prev_span: SpanData,
