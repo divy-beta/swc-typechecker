@@ -22,11 +22,12 @@ pub use self::{
     ident::{Ident, IdentExt, PrivateName},
     jsdoc::{
         JsDoc, JsDocAllType, JsDocAugmentsTag, JsDocAuthorTag, JsDocCallbackTag, JsDocClassTag,
-        JsDocEnumTag, JsDocFunctionType, JsDocImplementsTag, JsDocNamePathType, JsDocNamespaceDecl,
-        JsDocNonNullableType, JsDocNullableType, JsDocOptionalType, JsDocParameterTag,
-        JsDocPrivateTag, JsDocPropertyTag, JsDocProtectedTag, JsDocPublicTag, JsDocReadonlyTag,
-        JsDocReturnTag, JsDocTag, JsDocTagItem, JsDocThisTag, JsDocType, JsDocTypeExpr,
-        JsDocTypeTag, JsDocTypedefTag, JsDocUnknownTag, JsDocUnknownType, JsDocVariadicType,
+        JsDocEnumTag, JsDocExprWithTypeArgs, JsDocFunctionType, JsDocImplementsTag,
+        JsDocNamePathType, JsDocNamespaceDecl, JsDocNonNullableType, JsDocNullableType,
+        JsDocOptionalType, JsDocParameterTag, JsDocPrivateTag, JsDocPropertyTag, JsDocProtectedTag,
+        JsDocPublicTag, JsDocReadonlyTag, JsDocReturnTag, JsDocTag, JsDocTagItem, JsDocThisTag,
+        JsDocType, JsDocTypeExpr, JsDocTypeExprOrTypeLit, JsDocTypeTag, JsDocTypedefTag,
+        JsDocUnknownTag, JsDocUnknownType, JsDocVariadicType,
     },
     jsx::{
         JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXClosingElement, JSXClosingFragment,
