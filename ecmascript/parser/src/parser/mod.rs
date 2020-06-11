@@ -18,8 +18,6 @@ extern crate test;
 #[cfg(test)]
 use test::Bencher;
 
-#[macro_use]
-mod macros;
 mod class_and_fn;
 mod expr;
 mod ident;
