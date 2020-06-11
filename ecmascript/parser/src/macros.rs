@@ -361,7 +361,11 @@ macro_rules! token_including_semi {
 macro_rules! unexpected {
     ($p:expr) => {{
         let got = format!("{:?}", cur!($p, false).ok());
-        syntax_error!($p, $p.input.cur_span(), SyntaxError::Unexpected { got })
+        syntax_error!(
+            $p,
+            $p.input.cur_span(),
+            $crate::error::SyntaxError::Unexpected { got }
+        )
     }};
 }
 
@@ -372,7 +376,7 @@ macro_rules! is {
     ($p:expr, BindingIdent) => {{
         let ctx = $p.ctx();
         match cur!($p, false) {
-            Ok(&Word(ref w)) => !ctx.is_reserved_word(&w.cow()),
+            Ok(&$crate::token::Token::Word(ref w)) => !ctx.is_reserved_word(&w.cow()),
             _ => false,
         }
     }};
@@ -380,14 +384,14 @@ macro_rules! is {
     ($p:expr, IdentRef) => {{
         let ctx = $p.ctx();
         match cur!($p, false) {
-            Ok(&Word(ref w)) => !ctx.is_reserved_word(&w.cow()),
+            Ok(&$crate::token::Token::Word(ref w)) => !ctx.is_reserved_word(&w.cow()),
             _ => false,
         }
     }};
 
     ($p:expr,IdentName) => {{
         match cur!($p, false) {
-            Ok(&Word(..)) => true,
+            Ok(&$crate::token::Token::Word(..)) => true,
             _ => false,
         }
     }};
@@ -408,7 +412,7 @@ macro_rules! peeked_is {
     ($p:expr, BindingIdent) => {{
         let ctx = $p.ctx();
         match peek!($p) {
-            Ok(&Word(ref w)) => !ctx.is_reserved_word(&w.cow()),
+            Ok(&$crate::token::Token::Word(ref w)) => !ctx.is_reserved_word(&w.cow()),
             _ => false,
         }
     }};
@@ -517,7 +521,11 @@ macro_rules! expect {
         const TOKEN: &Token = &token_including_semi!($t);
         if !eat!($p, $t) {
             let cur = format!("{:?}", cur!($p, false).ok());
-            syntax_error!($p, $p.input.cur_span(), SyntaxError::Expected(TOKEN, cur))
+            syntax_error!(
+                $p,
+                $p.input.cur_span(),
+                $crate::error::SyntaxError::Expected(TOKEN, cur)
+            )
         }
     }};
 }
@@ -544,7 +552,7 @@ macro_rules! store {
 macro_rules! cur {
     ($p:expr, $required:expr) => {{
         let pos = $p.input.last_pos();
-        let last = Span::new(pos, pos, Default::default());
+        let last = swc_common::Span::new(pos, pos, Default::default());
         let is_err_token = match $p.input.cur() {
             Some(&$crate::token::Token::Error(..)) => true,
             _ => false,
