@@ -89,6 +89,7 @@ pub struct JsDocExprWithTypeArgs {
 #[ast_node]
 pub struct JsDocAuthorTag {
     pub span: Span,
+    /// `<name> [<emailAddress>]`
     pub author: Str,
 }
 

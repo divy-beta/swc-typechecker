@@ -68,7 +68,12 @@ where
                 })
             }
 
-            "author" => JsDocTag::Author(JsDocAuthorTag {}),
+            "author" => {
+                //
+                // Eat texts until we encounter < or @
+                let name = self.parse_text_until('<');
+                JsDocTag::Author(JsDocAuthorTag {})
+            }
 
             "borrow" => self.parse_unknown_tag(start)?,
 
