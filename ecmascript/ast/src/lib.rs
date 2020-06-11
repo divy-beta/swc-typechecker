@@ -21,9 +21,12 @@ pub use self::{
     function::{Function, Param, ParamOrTsParamProp},
     ident::{Ident, IdentExt, PrivateName},
     jsdoc::{
-        JsDoc, JsDocAllType, JsDocFunctionType, JsDocNamePathType, JsDocNonNullableType,
-        JsDocNullableType, JsDocOptionalType, JsDocTag, JsDocType, JsDocUnknownType,
-        JsDocVariadicType,
+        JsDoc, JsDocAllType, JsDocAugmentsTag, JsDocAuthorTag, JsDocCallbackTag, JsDocClassTag,
+        JsDocEnumTag, JsDocFunctionType, JsDocImplementsTag, JsDocNamePathType, JsDocNamespaceDecl,
+        JsDocNonNullableType, JsDocNullableType, JsDocOptionalType, JsDocParameterTag,
+        JsDocPrivateTag, JsDocPropertyTag, JsDocProtectedTag, JsDocPublicTag, JsDocReadonlyTag,
+        JsDocReturnTag, JsDocTag, JsDocTagItem, JsDocThisTag, JsDocType, JsDocTypeExpr,
+        JsDocTypeTag, JsDocTypedefTag, JsDocUnknownTag, JsDocUnknownType, JsDocVariadicType,
     },
     jsx::{
         JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXClosingElement, JSXClosingFragment,
