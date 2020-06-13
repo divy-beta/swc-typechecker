@@ -71,7 +71,6 @@ where
             "author" => {
                 //
                 // Eat texts until we encounter < or @
-                let name = self.parse_text_until('<');
                 JsDocTag::Author(JsDocAuthorTag {})
             }
 
@@ -79,7 +78,7 @@ where
 
             "callback" => JsDocTag::Callback(JsDocCallbackTag {}),
 
-            "constructor" | "class" => JsDocTag::Class(JsDocClassTag {}),
+            "constructor" | "class" => JsDocTag::Class(JsDocClassTag { span: span!(start) }),
 
             "classdesc" => self.parse_unknown_tag(start)?,
 
@@ -157,15 +156,15 @@ where
 
             "param" | "arg" | "argument" => JsDocTag::Parameter(JsDocParameterTag {}),
 
-            "private" => JsDocTag::Private(JsDocPrivateTag {}),
+            "private" => JsDocTag::Private(JsDocPrivateTag { span: span!(start) }),
 
             "property" | "prop" => JsDocTag::Property(JsDocPropertyTag {}),
 
-            "protected" => JsDocTag::Protected(JsDocPropertyTag {}),
+            "protected" => JsDocTag::Protected(JsDocProtectedTag { span: span!(start) }),
 
-            "public" => JsDocTag::Public(JsDocPublicTag {}),
+            "public" => JsDocTag::Public(JsDocPublicTag { span: span!(start) }),
 
-            "readonly" => JsDocTag::Readonly(JsDocReadonlyTag {}),
+            "readonly" => JsDocTag::Readonly(JsDocReadonlyTag { span: span!(start) }),
 
             "requires" => self.parse_unknown_tag(start)?,
 
