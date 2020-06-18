@@ -6,6 +6,16 @@
 #![deny(unreachable_pub)]
 #![deny(variant_size_differences)]
 
+#[cfg(feature = "jsdoc")]
+pub use self::jsdoc::{
+    JsDoc, JsDocAllType, JsDocAugmentsTag, JsDocAuthorTag, JsDocCallbackTag, JsDocClassTag,
+    JsDocEnumTag, JsDocExprWithTypeArgs, JsDocFunctionType, JsDocImplementsTag, JsDocNamePathType,
+    JsDocNamespaceBody, JsDocNamespaceDecl, JsDocNonNullableType, JsDocNullableType,
+    JsDocOptionalType, JsDocParameterTag, JsDocPrivateTag, JsDocPropertyTag, JsDocProtectedTag,
+    JsDocPublicTag, JsDocReadonlyTag, JsDocReturnTag, JsDocTag, JsDocTagItem, JsDocThisTag,
+    JsDocType, JsDocTypeExpr, JsDocTypeExprOrTypeLit, JsDocTypeTag, JsDocTypedefTag,
+    JsDocUnknownTag, JsDocUnknownType, JsDocVariadicType,
+};
 pub use self::{
     class::{
         Class, ClassMember, ClassMethod, ClassProp, Constructor, Decorator, MethodKind,
@@ -20,15 +30,6 @@ pub use self::{
     },
     function::{Function, Param, ParamOrTsParamProp},
     ident::{Ident, IdentExt, PrivateName},
-    jsdoc::{
-        JsDoc, JsDocAllType, JsDocAugmentsTag, JsDocAuthorTag, JsDocCallbackTag, JsDocClassTag,
-        JsDocEnumTag, JsDocExprWithTypeArgs, JsDocFunctionType, JsDocImplementsTag,
-        JsDocNamePathType, JsDocNamespaceDecl, JsDocNonNullableType, JsDocNullableType,
-        JsDocOptionalType, JsDocParameterTag, JsDocPrivateTag, JsDocPropertyTag, JsDocProtectedTag,
-        JsDocPublicTag, JsDocReadonlyTag, JsDocReturnTag, JsDocTag, JsDocTagItem, JsDocThisTag,
-        JsDocType, JsDocTypeExpr, JsDocTypeExprOrTypeLit, JsDocTypeTag, JsDocTypedefTag,
-        JsDocUnknownTag, JsDocUnknownType, JsDocVariadicType,
-    },
     jsx::{
         JSXAttr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXClosingElement, JSXClosingFragment,
         JSXElement, JSXElementChild, JSXElementName, JSXEmptyExpr, JSXExpr, JSXExprContainer,

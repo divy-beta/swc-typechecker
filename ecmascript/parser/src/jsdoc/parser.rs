@@ -80,8 +80,7 @@ where
 
             "borrow" => self.parse_unknown_tag(start)?,
 
-            "callback" => JsDocTag::Callback(JsDocCallbackTag {}),
-
+            // "callback" => unimplemented!("jsdoc parser: @callback"),
             "constructor" | "class" => JsDocTag::Class(JsDocClassTag { span: span!(start) }),
 
             "classdesc" => self.parse_unknown_tag(start)?,
@@ -112,7 +111,7 @@ where
 
             "fires" | "emits" => self.parse_unknown_tag(start)?,
 
-            "function" | "func" | "method" => self.parse_unknown_tag(start),
+            "function" | "func" | "method" => self.parse_unknown_tag(start)?,
 
             "generator" => self.parse_unknown_tag(start)?,
 
@@ -165,11 +164,37 @@ where
 
             "package" => self.parse_unknown_tag(start)?,
 
-            "param" | "arg" | "argument" => JsDocTag::Parameter(JsDocParameterTag {}),
+            "param" | "arg" | "argument" => {
+                let name = self.parse_entity_name()?;
+                let type_expr = self.parse_opt_type_expr()?;
+
+                JsDocTag::Parameter(JsDocParameterTag {
+                    span: span!(start),
+                    name,
+                    type_expr,
+                    // TODO
+                    is_name_first: false,
+                    // TODO
+                    is_bracketed: false,
+                })
+            }
 
             "private" => JsDocTag::Private(JsDocPrivateTag { span: span!(start) }),
 
-            "property" | "prop" => JsDocTag::Property(JsDocPropertyTag {}),
+            "property" | "prop" => {
+                let name = self.parse_entity_name()?;
+                let type_expr = self.parse_opt_type_expr()?;
+
+                JsDocTag::Property(JsDocPropertyTag {
+                    span: span!(start),
+                    name,
+                    type_expr,
+                    // TODO
+                    is_name_first: false,
+                    // TODO
+                    is_bracketed: false,
+                })
+            }
 
             "protected" => JsDocTag::Protected(JsDocProtectedTag { span: span!(start) }),
 
@@ -212,7 +237,19 @@ where
                 })
             }
 
-            "typedef" => JsDocTag::Typedef(JsDocTypedefTag {}),
+            "typedef" => {
+                let type_expr = self.parse_opt_type_expr_or_type_lit()?;
+
+                let name = self.parse_opt_ident()?;
+
+                let full_name = self.parse_opt_namespace_body()?;
+                JsDocTag::Typedef(JsDocTypedefTag {
+                    span: span!(start),
+                    full_name,
+                    name,
+                    type_expr,
+                })
+            }
 
             "variation" => self.parse_unknown_tag(start)?,
 
@@ -230,6 +267,8 @@ where
             tag,
         })
     }
+
+    fn parse_entity_name(&mut self) -> PResult<'a, TsEntityName> {}
 
     fn parse_unknown_tag(&mut self, start: BytePos) -> PResult<'a, JsDocTag> {
         let extras = self.parse_str_until(false, |_| true)?;
@@ -260,18 +299,17 @@ where
         }
 
         //
-        unimplemented!("parse_type")
     }
 
-    fn parse_opt_type_expr(&mut self) -> PResult<'a, Option<JsDocTypeExpr>> {
-        unimplemented!("parse_opt_type_expr")
-    }
+    fn parse_opt_type_expr(&mut self) -> PResult<'a, Option<JsDocTypeExpr>> {}
 
-    fn parse_type_expr(&mut self) -> PResult<'a, JsDocTypeExpr> {
-        unimplemented!("parse_type_expr")
-    }
+    fn parse_type_expr(&mut self) -> PResult<'a, JsDocTypeExpr> {}
 
-    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {
-        unimplemented!("parse_expr_with_type_args")
-    }
+    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {}
+
+    fn parse_opt_namespace_body(&mut self) -> PResult<'a, Option<JsDocNamespaceBody>> {}
+
+    fn parse_opt_type_expr_or_type_lit(&mut self) -> PResult<'a, Option<JsDocTypeExprOrTypeLit>> {}
+
+    fn parse_opt_ident(&mut self) -> PResult<'a, Option<Ident>> {}
 }
