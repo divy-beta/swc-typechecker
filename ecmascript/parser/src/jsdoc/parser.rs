@@ -62,6 +62,7 @@ where
 
             "augments" | "extends" => {
                 let class = self.parse_expr_with_type_args()?;
+
                 JsDocTag::Augments(JsDocAugmentsTag {
                     class,
                     span: span!(start),
@@ -121,7 +122,14 @@ where
 
             "ignore" => self.parse_unknown_tag(start)?,
 
-            "implements" => JsDocTag::Implements(JsDocImplementsTag {}),
+            "implements" => {
+                let class = self.parse_expr_with_type_args()?;
+
+                JsDocTag::Implements(JsDocImplementsTag {
+                    span: span!(start),
+                    class,
+                })
+            }
 
             "inheritdoc" => self.parse_unknown_tag(start)?,
 
@@ -187,7 +195,7 @@ where
 
             "summary" => self.parse_unknown_tag(start)?,
 
-            "this" => JsDocTag::This(JsDocThisTag {}),
+            "this" => JsDocTag::This(JsDocThisTag { span: span!(start) }),
 
             "throws" | "exception" => self.parse_unknown_tag(start)?,
 
