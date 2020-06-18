@@ -26,7 +26,17 @@ impl<'a, I> Parser<'a, I>
 where
     I: Tokens,
 {
-    pub fn parse(&mut self) -> PResult<'a, JsDoc> {}
+    pub fn parse(&mut self) -> PResult<'a, JsDoc> {
+        let start = cur_pos!();
+        let description = self.parse_str_until(true, |_| true)?;
+        let tags = self.parse_tags()?;
+
+        Ok(JsDoc {
+            span: span!(start),
+            description,
+            tags,
+        })
+    }
 
     fn parse_tags(&mut self) -> PResult<'a, Vec<JsDocTagItem>> {
         let mut tags = vec![];
