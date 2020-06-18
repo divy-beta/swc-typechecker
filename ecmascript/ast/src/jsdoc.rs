@@ -232,6 +232,22 @@ pub enum JsDocType {
     // https://jsdoc.app/about-namepaths.html
     #[tag("JsDocNamePathType")]
     NamePath(JsDocNamePathType),
+    #[tag("JsDocUnionType")]
+    Union(JsDocUnionType),
+    #[tag("JsDocParenType")]
+    Paren(JsDocParenType),
+}
+
+#[ast_node]
+pub struct JsDocUnionType {
+    pub span: Span,
+    pub types: Vec<JsDocType>,
+}
+
+#[ast_node]
+pub struct JsDocParenType {
+    pub span: Span,
+    pub ty: Box<JsDocType>,
 }
 
 #[ast_node]

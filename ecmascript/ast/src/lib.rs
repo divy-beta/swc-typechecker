@@ -11,10 +11,11 @@ pub use self::jsdoc::{
     JsDoc, JsDocAllType, JsDocAugmentsTag, JsDocAuthorTag, JsDocCallbackTag, JsDocClassTag,
     JsDocEnumTag, JsDocExpr, JsDocExprWithTypeArgs, JsDocFunctionType, JsDocImplementsTag,
     JsDocNamePathType, JsDocNamespaceBody, JsDocNamespaceDecl, JsDocNonNullableType,
-    JsDocNullableType, JsDocOptionalType, JsDocParameterTag, JsDocPrivateTag, JsDocPropertyTag,
-    JsDocProtectedTag, JsDocPublicTag, JsDocReadonlyTag, JsDocReturnTag, JsDocTag, JsDocTagItem,
-    JsDocThisTag, JsDocType, JsDocTypeExpr, JsDocTypeExprOrTypeLit, JsDocTypeTag, JsDocTypedefTag,
-    JsDocUnknownTag, JsDocUnknownType, JsDocVariadicType,
+    JsDocNullableType, JsDocOptionalType, JsDocParameterTag, JsDocParenType, JsDocPrivateTag,
+    JsDocPropertyTag, JsDocProtectedTag, JsDocPublicTag, JsDocReadonlyTag, JsDocReturnTag,
+    JsDocTag, JsDocTagItem, JsDocThisTag, JsDocType, JsDocTypeExpr, JsDocTypeExprOrTypeLit,
+    JsDocTypeTag, JsDocTypedefTag, JsDocUnionType, JsDocUnknownTag, JsDocUnknownType,
+    JsDocVariadicType,
 };
 pub use self::{
     class::{
