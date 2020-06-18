@@ -69,9 +69,12 @@ where
             }
 
             "author" => {
-                //
-                // Eat texts until we encounter < or @
-                JsDocTag::Author(JsDocAuthorTag {})
+                let author = self.parse_str_until(false, |_| true)?;
+
+                JsDocTag::Author(JsDocAuthorTag {
+                    span: span!(start),
+                    author,
+                })
             }
 
             "borrow" => self.parse_unknown_tag(start)?,
@@ -206,15 +209,29 @@ where
     }
 
     fn parse_unknown_tag(&mut self, start: BytePos) -> PResult<'a, JsDocTag> {
-        Ok(JsDocTag::Unknown(JsDocUnknownTag { span: span!(start) }))
+        let extras = self.parse_str_until(false, |_| true)?;
+        Ok(JsDocTag::Unknown(JsDocUnknownTag {
+            span: span!(start),
+            extras,
+        }))
+    }
+
+    fn parse_str_until<F>(&mut self, include_new_line: bool, op: F) -> PResult<'a, Str>
+    where
+        F: Fn(&Str) -> bool,
+    {
     }
 
     fn parse_type(&mut self) -> PResult<'a, JsDocType> {
         let start = cur_pos!();
         match cur!(true)? {
-            tok!('*') | tok!('?') => {
+            tok!('*') => {
                 bump!();
                 return Ok(JsDocType::All(JsDocAllType { span: span!(start) }));
+            }
+            tok!('?') => {
+                bump!();
+                return Ok(JsDocType::Unknown(JsDocUnknownType { span: span!(start) }));
             }
             _ => {}
         }
