@@ -330,7 +330,21 @@ where
         //
     }
 
-    fn parse_opt_type_expr(&mut self) -> PResult<'a, Option<JsDocTypeExpr>> {}
+    fn parse_opt_type_expr(&mut self) -> PResult<'a, Option<JsDocTypeExpr>> {
+        let start = cur_pos!();
+        if !eat!('{') {
+            return Ok(None);
+        }
+
+        let ty = self.parse_type()?;
+
+        expect!('}');
+
+        Ok(Some(JsDocTypeExpr {
+            span: span!(start),
+            ty,
+        }))
+    }
 
     fn parse_type_expr(&mut self) -> PResult<'a, JsDocTypeExpr> {
         let start = cur_pos!();
