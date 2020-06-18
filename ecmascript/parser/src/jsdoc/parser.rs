@@ -278,7 +278,26 @@ where
         })
     }
 
-    fn parse_entity_name(&mut self) -> PResult<'a, TsEntityName> {}
+    fn parse_entity_name(&mut self) -> PResult<'a, TsEntityName> {
+        let mut obj = match self.parse_opt_ident()? {
+            None => unexpected!(),
+            Some(v) => TsEntityName::Ident(v),
+        };
+
+        while is!(IdentName) {
+            match self.parse_opt_ident()? {
+                Some(v) => {
+                    obj = TsEntityName::TsQualifiedName(Box::new(TsQualifiedName {
+                        left: obj,
+                        right: v,
+                    }));
+                }
+                None => break,
+            }
+        }
+
+        Ok(obj)
+    }
 
     fn parse_unknown_tag(&mut self, start: BytePos) -> PResult<'a, JsDocTag> {
         let extras = self.parse_str_until(false, |_| true)?;
@@ -321,5 +340,16 @@ where
 
     fn parse_opt_type_expr_or_type_lit(&mut self) -> PResult<'a, Option<JsDocTypeExprOrTypeLit>> {}
 
-    fn parse_opt_ident(&mut self) -> PResult<'a, Option<Ident>> {}
+    fn parse_opt_ident(&mut self) -> PResult<'a, Option<Ident>> {
+        let span = self.input.cur_span();
+        if is!(IdentName) {
+            let sym = match bump!() {
+                Token::Word(w) => w.into(),
+                _ => unreachable!(),
+            };
+            Ok(Some(Ident::new(sym, span)))
+        } else {
+            Ok(None)
+        }
+    }
 }
