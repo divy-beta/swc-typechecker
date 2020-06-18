@@ -219,6 +219,8 @@ where
             "version" => self.parse_unknown_tag(start)?,
 
             "yields" | "yield" => self.parse_unknown_tag(start)?,
+
+            _ => self.parse_unknown_tag(start)?,
         };
 
         let span = span!(start);
