@@ -97,7 +97,7 @@ where
 
             "description" | "desc" => self.parse_unknown_tag(start)?,
 
-            "enum" => JsDocTag::Enum(JsDocEnumTag {}),
+            "enum" => JsDocTag::Enum(JsDocEnumTag { span: span!(start) }),
 
             "event" => self.parse_unknown_tag(start)?,
 
@@ -107,7 +107,7 @@ where
 
             "external" | "host" => self.parse_unknown_tag(start)?,
 
-            "file" | "fileoverview" | "overview" => self.parse_unknown_tag(start),
+            "file" | "fileoverview" | "overview" => self.parse_unknown_tag(start)?,
 
             "fires" | "emits" => self.parse_unknown_tag(start)?,
 
@@ -171,7 +171,13 @@ where
 
             "requires" => self.parse_unknown_tag(start)?,
 
-            "returns" | "return" => JsDocTag::Return(JsDocReturnTag {}),
+            "returns" | "return" => {
+                let type_expr = self.parse_opt_type_expr()?;
+                JsDocTag::Return(JsDocReturnTag {
+                    span: span!(start),
+                    type_expr,
+                })
+            }
 
             "see" => self.parse_unknown_tag(start)?,
 
@@ -189,7 +195,14 @@ where
 
             "tutorial" => self.parse_unknown_tag(start)?,
 
-            "type" => JsDocTag::Type(JsDocTypeTag {}),
+            "type" => {
+                let type_expr = self.parse_type_expr()?;
+
+                JsDocTag::Type(JsDocTypeTag {
+                    span: span!(start),
+                    type_expr,
+                })
+            }
 
             "typedef" => JsDocTag::Typedef(JsDocTypedefTag {}),
 
@@ -240,5 +253,15 @@ where
         unimplemented!("parse_type")
     }
 
-    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {}
+    fn parse_opt_type_expr(&mut self) -> PResult<'a, Option<JsDocTypeExpr>> {
+        unimplemented!("parse_opt_type_expr")
+    }
+
+    fn parse_type_expr(&mut self) -> PResult<'a, JsDocTypeExpr> {
+        unimplemented!("parse_type_expr")
+    }
+
+    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {
+        unimplemented!("parse_expr_with_type_args")
+    }
 }
