@@ -43,7 +43,7 @@ where
         let start = cur_pos!();
         expect!('@');
 
-        if is!(IdentName) {
+        if !is!(IdentName) {
             unexpected!()
         }
 
