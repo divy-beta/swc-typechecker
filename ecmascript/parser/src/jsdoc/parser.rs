@@ -332,9 +332,27 @@ where
 
     fn parse_opt_type_expr(&mut self) -> PResult<'a, Option<JsDocTypeExpr>> {}
 
-    fn parse_type_expr(&mut self) -> PResult<'a, JsDocTypeExpr> {}
+    fn parse_type_expr(&mut self) -> PResult<'a, JsDocTypeExpr> {
+        let start = cur_pos!();
+        let ty = self.parse_type()?;
 
-    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {}
+        Ok(JsDocTypeExpr {
+            span: span!(start),
+            ty,
+        })
+    }
+
+    fn parse_expr(&mut self) -> PResult<'a, JsDocExpr> {}
+
+    fn parse_expr_with_type_args(&mut self) -> PResult<'a, JsDocExprWithTypeArgs> {
+        let start = cur_pos!();
+        let expr = self.parse_expr().map(Box::new)?;
+
+        Ok(JsDocExprWithTypeArgs {
+            span: span!(start),
+            expr,
+        })
+    }
 
     fn parse_opt_namespace_body(&mut self) -> PResult<'a, Option<JsDocNamespaceBody>> {}
 

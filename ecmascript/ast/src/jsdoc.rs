@@ -1,4 +1,4 @@
-use crate::{Expr, Ident, Str, TsEntityName, TsTypeParamDecl};
+use crate::{Ident, Str, TsEntityName, TsQualifiedName, TsTypeParamDecl};
 use swc_common::{ast_node, Span};
 
 #[ast_node]
@@ -83,7 +83,15 @@ pub struct JsDocExprWithTypeArgs {
     pub span: Span,
 
     // TODO parent: HeritageClause | JSDocAugmentsTag | JSDocImplementsTag;
-    pub expr: Box<Expr>,
+    pub expr: Box<JsDocExpr>,
+}
+
+#[ast_node]
+pub enum JsDocExpr {
+    #[tag("Identifier")]
+    Ident(Ident),
+    #[tag("TsQualifiedName")]
+    Property(TsQualifiedName),
 }
 
 #[ast_node]
