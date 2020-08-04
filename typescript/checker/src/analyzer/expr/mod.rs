@@ -1,8 +1,8 @@
 use super::Analyzer;
 use crate::{
     analyzer::{
-        convert::default_any_pat, pat::PatMode, props::prop_name_to_expr, util::ResultExt, Ctx,
-        ScopeKind,
+        convert::default_any_pat, pat::PatMode, props::prop_name_to_expr, scope::ItemRef,
+        util::ResultExt, Ctx, ScopeKind,
     },
     builtin_types,
     debug::print_backtrace,
@@ -21,7 +21,7 @@ use crate::{
 };
 use macros::validator;
 use swc_atoms::js_word;
-use swc_common::{Span, Spanned, VisitMutWith};
+use swc_common::{Span, Spanned, SyntaxContext, VisitMutWith, DUMMY_SP};
 use swc_ecma_ast::*;
 
 mod bin;
@@ -77,6 +77,8 @@ impl Validate<AssignExpr> for Analyzer<'_, '_> {
         self.with_ctx(ctx).with(|a| {
             let span = e.span();
 
+            let right_type = a.validate_expr(&mut e.right, TypeOfMode::RValue, None);
+
             let any_span = match &e.left {
                 PatOrExpr::Pat(box Pat::Ident(ref i)) | PatOrExpr::Expr(box Expr::Ident(ref i)) => {
                     // Type is any if self.declaring contains ident
@@ -88,25 +90,66 @@ impl Validate<AssignExpr> for Analyzer<'_, '_> {
                 }
 
                 PatOrExpr::Pat(box Pat::Expr(box Expr::Member(MemberExpr {
-                    obj: ExprOrSuper::Expr(box Expr::Ident(funcname)),
+                    obj: ExprOrSuper::Expr(box Expr::Ident(ident)),
                     prop: box Expr::Ident(propname),
                     ..
                 }))) => {
-                    a.append_stmts.push(Stmt::Decl(Decl::TsModule(TsModuleDecl {
-                        span,
-                        declare: true,
-                        global: false,
-                        id: TsModuleName::Ident(funcname.clone()),
-                        body: Some(TsNamespaceBody::TsModuleBlock(TsModuleBlock {
-                            span,
-                            body: vec![ModuleItem::Stmt(Stmt::Decl(Decl::Var(VarDecl {
-                                span: propname.span,
-                                kind: VarDeclKind::Var,
+                    let ident_type = a.type_of_var(ident, TypeOfMode::LValue, None);
+                    match ident_type {
+                        Ok(ty::Type::Function(_)) => {
+                            let mut ghost_namepsace = TsModuleDecl {
+                                span: DUMMY_SP,
                                 declare: true,
-                                decls: vec![],
-                            })))],
-                        })),
-                    })));
+                                global: false,
+                                id: TsModuleName::Ident(ident.clone()),
+                                body: Some(TsNamespaceBody::TsModuleBlock(TsModuleBlock {
+                                    span,
+                                    body: vec![ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(
+                                        ExportDecl {
+                                            span: DUMMY_SP,
+                                            decl: Decl::Var(VarDecl {
+                                                span: propname.span,
+                                                kind: VarDeclKind::Var,
+                                                declare: false,
+                                                decls: vec![VarDeclarator {
+                                                    span: propname.span,
+                                                    name: Pat::Ident(Ident {
+                                                        type_ann: match right_type.clone() {
+                                                            Ok(ty) => Some(TsTypeAnn {
+                                                                span,
+                                                                type_ann: Box::new(ty.into()),
+                                                            }),
+                                                            Err(error) => {
+                                                                panic!();
+                                                                // a.info.errors.push(error);
+                                                                None
+                                                            }
+                                                        },
+                                                        ..propname.clone()
+                                                    }),
+                                                    init: None,
+                                                    definite: false,
+                                                }],
+                                            }),
+                                        },
+                                    ))],
+                                })),
+                            };
+                            if let Some(namespace_ty) =
+                                a.validate(&mut ghost_namepsace).store(&mut a.info.errors)
+                            {
+                                a.append_stmts
+                                    .push(Stmt::Decl(Decl::TsModule(ghost_namepsace)));
+                                a.info
+                                    .exports
+                                    .types
+                                    .entry(ident.into())
+                                    .or_default()
+                                    .push(namespace_ty);
+                            }
+                        }
+                        _ => {}
+                    }
                     None
                 }
 
