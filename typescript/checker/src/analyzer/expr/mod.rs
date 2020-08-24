@@ -1,8 +1,8 @@
 use super::Analyzer;
 use crate::{
     analyzer::{
-        convert::default_any_pat, pat::PatMode, props::prop_name_to_expr, util::ResultExt, Ctx,
-        ScopeKind,
+        convert::default_any_pat, pat::PatMode, props::prop_name_to_expr, scope::ItemRef,
+        util::ResultExt, Ctx, ScopeKind,
     },
     builtin_types,
     debug::print_backtrace,
@@ -21,7 +21,7 @@ use crate::{
 };
 use macros::validator;
 use swc_atoms::js_word;
-use swc_common::{Span, Spanned, VisitMutWith};
+use swc_common::{Span, Spanned, SyntaxContext, VisitMutWith, DUMMY_SP};
 use swc_ecma_ast::*;
 
 mod bin;
@@ -77,7 +77,9 @@ impl Validate<AssignExpr> for Analyzer<'_, '_> {
         self.with_ctx(ctx).with(|a| {
             let span = e.span();
 
-            let any_span = match e.left {
+            let right_type = a.validate_expr(&mut e.right, TypeOfMode::RValue, None);
+
+            let any_span = match &e.left {
                 PatOrExpr::Pat(box Pat::Ident(ref i)) | PatOrExpr::Expr(box Expr::Ident(ref i)) => {
                     // Type is any if self.declaring contains ident
                     if a.scope.declaring.contains(&i.into()) {
@@ -87,7 +89,74 @@ impl Validate<AssignExpr> for Analyzer<'_, '_> {
                     }
                 }
 
-                _ => None,
+                PatOrExpr::Pat(box Pat::Expr(box Expr::Member(MemberExpr {
+                    obj: ExprOrSuper::Expr(box Expr::Ident(ident)),
+                    prop: box Expr::Ident(propname),
+                    ..
+                }))) => {
+                    let ident_type = a.type_of_var(ident, TypeOfMode::LValue, None);
+                    match ident_type {
+                        Ok(ty::Type::Function(_)) => {
+                            let mut ghost_namepsace = TsModuleDecl {
+                                span: DUMMY_SP,
+                                declare: true,
+                                global: false,
+                                id: TsModuleName::Ident(ident.clone()),
+                                body: Some(TsNamespaceBody::TsModuleBlock(TsModuleBlock {
+                                    span,
+                                    body: vec![ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(
+                                        ExportDecl {
+                                            span: DUMMY_SP,
+                                            decl: Decl::Var(VarDecl {
+                                                span: propname.span,
+                                                kind: VarDeclKind::Var,
+                                                declare: false,
+                                                decls: vec![VarDeclarator {
+                                                    span: propname.span,
+                                                    name: Pat::Ident(Ident {
+                                                        type_ann: match right_type.clone() {
+                                                            Ok(ty) => Some(TsTypeAnn {
+                                                                span,
+                                                                type_ann: Box::new(ty.into()),
+                                                            }),
+                                                            Err(error) => {
+                                                                panic!();
+                                                                // a.info.errors.push(error);
+                                                                None
+                                                            }
+                                                        },
+                                                        ..propname.clone()
+                                                    }),
+                                                    init: None,
+                                                    definite: false,
+                                                }],
+                                            }),
+                                        },
+                                    ))],
+                                })),
+                            };
+                            if let Some(namespace_ty) =
+                                a.validate(&mut ghost_namepsace).store(&mut a.info.errors)
+                            {
+                                a.append_stmts
+                                    .push(Stmt::Decl(Decl::TsModule(ghost_namepsace)));
+                                a.info
+                                    .exports
+                                    .types
+                                    .entry(ident.into())
+                                    .or_default()
+                                    .push(namespace_ty);
+                            }
+                        }
+                        _ => {}
+                    }
+                    None
+                }
+
+                other => {
+                    println!("{:#?}", other);
+                    panic!()
+                }
             };
 
             e.left.visit_mut_with(a);
@@ -582,6 +651,7 @@ impl Analyzer<'_, '_> {
                                     type_params: m.type_params.clone(),
                                     params: m.params.clone(),
                                     ret_ty: box m.ret_ty.clone().unwrap_or_else(|| Type::any(span)),
+                                    properties: Vec::new(),
                                 }));
                                 continue;
                             }
@@ -1005,6 +1075,7 @@ impl Analyzer<'_, '_> {
                                             type_params: m.type_params.clone(),
                                             params: m.params.clone(),
                                             ret_ty: m.ret_ty.clone(),
+                                            properties: Vec::new(),
                                         }));
                                     }
                                 }
@@ -1083,6 +1154,28 @@ impl Analyzer<'_, '_> {
                 return Ok(*obj.obj_type.clone());
             }
 
+            Type::Function(function) => {
+                match type_mode {
+                    TypeOfMode::LValue => match prop {
+                        Expr::Lit(Lit::Str(_)) | Expr::Lit(Lit::Num(_)) | Expr::Ident(_) => {
+                            return Ok(Type::unknown(span))
+                        }
+                        _ => return Err(Error::TS7053 { span }),
+                    },
+                    TypeOfMode::RValue => {
+                        unimplemented!("Checking RValue of access_property of Type::Function")
+                    } /* {
+                       *     match prop {
+                       *         Expr::Lit(Str(s)) => {
+                       *             for m in function.properties {
+                       *                 if m.key
+                       *             }
+                       *         }
+                       *     }
+                       * } */
+                }
+            }
+
             _ => {}
         }
 
@@ -1128,6 +1221,7 @@ impl Analyzer<'_, '_> {
                         params: vec![],
                         ret_ty: box Type::any(span),
                         type_params: None,
+                        properties: Vec::new(),
                     }));
                 }
             },
@@ -1438,6 +1532,7 @@ impl Validate<ArrowExpr> for Analyzer<'_, '_> {
                 type_params,
                 ret_ty: box declared_ret_ty
                     .unwrap_or_else(|| inferred_return_type.unwrap_or_else(|| Type::any(f.span))),
+                properties: Vec::new(),
             })
         })
     }
